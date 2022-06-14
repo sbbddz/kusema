@@ -22,9 +22,9 @@ export function FirstTime(props: Props) {
   const [displayName, setDisplayName] = useState<string>("");
 
   const handleClick = () => {
-    db.initDatabase().then(
+    db.initDatabase(displayName).then(
       (x) => {
-        createDatabase();
+        createDatabase(x);
       },
       (err) => {
         console.log(err);
@@ -39,7 +39,7 @@ export function FirstTime(props: Props) {
     <View style={styles.container}>
       <View style={styles.titleContainer}>
         <View>
-          <Image source={kusemaLogo} height={250} />
+          <Image source={kusemaLogo} height={150} />
         </View>
         <Text style={styles.title}>Kusema</Text>
         <Text>
@@ -72,10 +72,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 70,
+    marginBottom: 90,
   },
   titleContainer: {
     flex: 1,
+    flexDirection: 'column',
     alignItems: "center",
     width: "60%",
   },

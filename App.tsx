@@ -5,7 +5,7 @@ import { ChatStack, FirstJoinStack } from "./src/components/ChatStack";
 import { DatabaseContext } from "./src/services/database";
 import { Database, DB } from "./src/services/database";
 
-interface DatabaseState {
+export interface DatabaseState {
   hasDatabase: boolean;
   db: DB;
 }
@@ -61,13 +61,8 @@ export default function App() {
 
   const databaseContext = useMemo(
     () => ({
-      createDatabase: () => {
-        database.initDatabase().then(
-          (db) => {
-            dispatch({ type: "CREATE_DATABASE", db });
-          },
-          (err) => console.log(err)
-        );
+      createDatabase: (db: DB) => {
+        dispatch({ type: "CREATE_DATABASE", db });
       },
       deleteDatabase: () => {
         database.deleteDatabase().then(

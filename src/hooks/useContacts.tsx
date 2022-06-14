@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Contact } from "../models/Contact";
+import { QRChat } from "../models/QRChat";
 
 export const useContacts = () => {
-  const [contacts, setState] = useState<Contact[]>([]);
+  const [contacts, setState] = useState<QRChat[]>([]);
 
-  const setContacts = (contacts: Contact[]) => {
+  const setContacts = (contacts: QRChat[]) => {
     setState(contacts);
   };
 

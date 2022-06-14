@@ -1,8 +1,9 @@
 import * as SQLite from "expo-sqlite";
 import { createContext } from "react";
 import { Platform } from "react-native";
-import { IMessage } from "react-native-gifted-chat";
-import { Contact } from "../models/Contact";
+import { User } from "../models/User";
+import uuid from "react-native-uuid";
+import { QRChat } from "../models/QRChat";
 
 export type DB = SQLite.Database | null;
 
@@ -51,11 +52,12 @@ export class Database {
     return this.database;
   }
 
-  public initDatabase(): Promise<DB> {
-    return this.createTables();
+  public async initDatabase(name: string): Promise<DB> {
+    const user = await this.generateUserBasedInName(name);
+    return this.createTables(user);
   }
 
-  public getContactChats(): Promise<Contact[]> {
+  public getContactChats(): Promise<QRChat[]> {
     return new Promise((resolve, reject) => {
       if (!this.database) {
         reject("No database in context!");
@@ -63,41 +65,19 @@ export class Database {
       }
 
       this.database.transaction((x) => {
-        x.executeSql("select * from contacts", [], (_, { rows }) => {
-          resolve(rows._array);
+        x.executeSql("select * from chats", [], (_, { rows }) => {
+          resolve(
+            rows._array.map(
+              (x) =>
+                ({
+                  guidChat: x.guid,
+                  encryptionKey: x.encryptionKey,
+                  name: x.name,
+                } as QRChat)
+            )
+          );
         });
       });
-    });
-  }
-
-  public getMessagesByContact(contact: Contact): Promise<IMessage[]> {
-    return new Promise((resolve, reject) => {
-      if (!this.database) {
-        reject("No database in context!");
-        return;
-      }
-
-      this.database.transaction(
-        (x) => {
-          x.executeSql(
-            "select * from messages where contact = ?",
-            [contact.id],
-            (_, { rows }) => {
-              const mappedRows = rows._array.map(x => ({
-                _id: x["id"],
-                text: x["message"],
-                createdAt: x["time"],
-                user: {
-                  name: 'Probando',
-                  avatar: 'https://placeimg.com/140/140/any',
-                }
-              } as IMessage))
-              resolve(mappedRows)
-            }
-          );
-        },
-        (err) => console.log(err)
-      );
     });
   }
 
@@ -112,19 +92,61 @@ export class Database {
       this.database.transaction(
         (x) => {
           x.executeSql("delete from user;");
-          x.executeSql("delete from contacts;");
-          x.executeSql("delete from messages;");
+          x.executeSql("delete from chats;");
           x.executeSql("drop table if exists user;");
-          x.executeSql("drop table if exists contacts;");
-          x.executeSql("drop table if exists messages;");
+          x.executeSql("drop table if exists chats;");
           resolve();
         },
-        (err) => reject(err)
+        (err) => {
+          console.error(err);
+          reject(err);
+        }
       );
     });
   }
 
-  private createTables(): Promise<DB> {
+  public getUser(): Promise<User> {
+    return new Promise<User>((resolve, reject) => {
+      if (!this.database) {
+        reject("Imposible to create database!");
+        return;
+      }
+
+      this.database.transaction((x) => {
+        x.executeSql("select id, name from user", [], (_, { rows }) => {
+          resolve({
+            _id: rows.item(0)["id"],
+            name: rows.item(0)["name"],
+          });
+        });
+      });
+    });
+  }
+
+  public addChat(chat: QRChat) {
+    return new Promise<boolean>((resolve, reject) => {
+      if (!this.database) {
+        reject("No database in context!");
+        return;
+      }
+
+      console.log(chat);
+      this.database.transaction(
+        (x) => {
+          x.executeSql(
+            `insert into chats (guid, name, encryptionKey) values ('${chat.guidChat}', '${chat.name}', '${chat.encryptionKey}')`
+          );
+          resolve(true);
+        },
+        (err) => {
+          console.log(err);
+          reject(err);
+        }
+      );
+    });
+  }
+
+  private createTables(user: User): Promise<DB> {
     return new Promise<DB>((resolve, reject) => {
       if (!this.database) {
         reject("Imposible to create database!");
@@ -134,33 +156,18 @@ export class Database {
       this.database.transaction(
         (x) => {
           x.executeSql(
-            "create table if not exists user (id integer primary key not null, displayName text not null, privateKey text not null, publicKey text not null, guid text not null)"
+            "create table if not exists user (id text primary key not null, name text not null)"
           );
           x.executeSql(
-            "create table if not exists contacts (id text primary key not null, displayName text not null, publicKey text not null)"
+            "create table if not exists chats (guid text primary key not null, name text not null, encryptionKey text not null)"
           );
           x.executeSql(
-            "create table if not exists messages (id integer primary key autoincrement not null, contact text not null, sentByUser bool not null, time date, message text)"
+            `insert into user (id, name) values ('${user._id}', '${user.name}')`
           );
-
-          // TODO: Only debug!
-          x.executeSql(
-            "insert into user (id, displayName, privateKey, publicKey, guid) VALUES (0, 'Jose Antonio', 'fdsa', 'fdas', 'fdasss')"
-          );
-          x.executeSql(
-            "insert into messages (contact, sentByUser, time, message) VALUES ('324', true, date('now'), 'Hola que tal')"
-          );
-          /*x.executeSql(
-            "insert into messages (id, userFrom, time, message) VALUES (324, false, date('now'), 'Hola')"
-          );*/
-          x.executeSql(
-            "insert into contacts (id, displayName, publicKey) VALUES ('324', 'Jose Manuel', 'AAAAA')"
-          );
-
           resolve(this.database);
         },
         (_) => {
-          //console.log(_);
+          console.error(_);
           reject(_);
         }
       );
@@ -174,6 +181,13 @@ export class Database {
 
     const db = SQLite.openDatabase("kusema.db");
     return db;
+  }
+
+  private async generateUserBasedInName(name: string): Promise<User> {
+    return {
+      _id: uuid.v4().toString(),
+      name,
+    };
   }
 
   public static getInstance(): Database {

@@ -1,5 +1,5 @@
-import { useNavigation } from "@react-navigation/native";
-import React, { useContext, useEffect, useState } from "react";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
+import React, { useContext, useEffect } from "react";
 import {
   Alert,
   ScrollView,
@@ -15,34 +15,49 @@ import { Database } from "../services/database";
 
 export function Home() {
   const [contactsChats, setContactsChat] = useContacts();
+  const isFocused = useIsFocused();
   const { deleteDatabase } = useContext(DatabaseContext);
+  const navigator = useNavigation();
   const db = Database.getInstance();
 
   useEffect(() => {
     db.getContactChats().then(
-      (res) => setContactsChat(res),
+      (res) => {
+        console.log(res);
+        setContactsChat(res);
+      },
       (err) => Alert.alert("Can't load chats in database. DB is corrupted?")
     );
-  }, []);
+  }, [isFocused]);
 
-  // TODO: Pass params to chat (id to chat with)
   return (
     <View style={styles.container}>
       <ScrollView>
         {contactsChats &&
           contactsChats.map((x) => {
-            return <ChatComponent key={x.id} contact={x} />;
+            return <ChatComponent key={x.guidChat} chat={x} />;
           })}
       </ScrollView>
-      <TouchableOpacity style={styles.addFixed}>
-        <Text>➕</Text>
+      <TouchableOpacity
+        onPress={() => navigator.navigate("ReadQR")}
+        style={styles.addFixed}
+      >
+        <Text style={{ padding: 15, fontSize: 50, color: "white", fontWeight: "bold" }}>
+          +
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => deleteDatabase()}
+        onPress={() => navigator.navigate("ShowQR")}
         style={styles.shareFixed}
       >
-        <Text>👥</Text>
+        <Text style={{ padding: 15, fontSize: 30, color: "white", fontWeight: "bold" }}>👤</Text>
       </TouchableOpacity>
+      {/*<TouchableOpacity
+        onPress={() => deleteDatabase()}
+        style={styles.shareFixed2}
+      >
+        <Text>X</Text>
+        </TouchableOpacity>*/}
     </View>
   );
 }
@@ -65,16 +80,23 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 100,
     marginRight: 15,
-    backgroundColor: "#cdcdcd",
-    padding: 12,
+    backgroundColor: "indigo",
     borderRadius: 100,
   },
   shareFixed: {
     position: "absolute",
     right: 0,
-    bottom: 50,
+    bottom: 10,
     marginRight: 15,
-    backgroundColor: "#cdcdcd",
+    backgroundColor: "indigo",
+    borderRadius: 100,
+  },
+  shareFixed2: {
+    position: "absolute",
+    right: 0,
+    bottom: 150,
+    marginRight: 15,
+    backgroundColor: "indigo",
     padding: 12,
     borderRadius: 100,
   },
