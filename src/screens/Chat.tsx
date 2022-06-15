@@ -42,10 +42,11 @@ export const Chat: React.FC = ({ route, navigation }: Props) => {
           let rawData = doc.data();
           messages.push({
             _id: doc.id,
-            text: decryptMessage(
+            /*text: decryptMessage(
               rawData["text"],
               route.params.encryptionKey
-            ).toString(),
+              ).toString(),*/
+            text: decryptMessage(rawData["text"], route.params.encryptionKey),
             user: rawData["user"],
           } as IMessage);
         });
@@ -63,12 +64,12 @@ export const Chat: React.FC = ({ route, navigation }: Props) => {
 
     const docRef = doc(firestoreDatabase, "chats", route.params.guidChat);
     const colRef = collection(docRef, "messages");
-    const encryptedText = encryptMessage(
+    const message = encryptMessage(
       messages[0].text,
       route.params.encryptionKey
-    ).ciphertext;
+    );
 
-    addDoc(colRef, { ...messages[0], text: encryptedText });
+    addDoc(colRef, { ...messages[0], text: message });
   }, []);
 
   return (

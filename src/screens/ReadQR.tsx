@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { Button, Text, View } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { Database } from "../services/database";
@@ -14,6 +14,10 @@ export const ReadQR = () => {
   const [scanned, setScanned] = useState({ isScanned: false, data: undefined });
   const db = Database.getInstance();
 
+  useLayoutEffect(() => {
+    askPermissions();
+  }, []);
+
   const askPermissions = () => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
@@ -25,9 +29,6 @@ export const ReadQR = () => {
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned({ isScanned: true, data: data });
     let qrChat: QRChat = JSON.parse(data);
-    if (!qrChat.avatar) qrChat.avatar = "https://placeimg.com/140/140/any";
-
-    // TODO: Add chat to firebase
 
     db.addChat(qrChat).then(
       (x) => {
@@ -39,7 +40,8 @@ export const ReadQR = () => {
 
   if (hasPermission && hasPermission && !scanned.isScanned) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={{ flex: 1, justifyContent: "space-evenly", alignItems: "center" }}>
+        <Text style={{ fontSize: 23, fontWeight: "bold", color: "indigo"}}>Scan a valid QR Chat code!</Text>
         <BarCodeScanner
           onBarCodeScanned={handleBarCodeScanned}
           style={{ width: 500, height: 500, borderRadius: "30%" }}
@@ -62,8 +64,7 @@ export const ReadQR = () => {
           padding: 100,
         }}
       >
-        <Text></Text>
-        <Button title="Scan a contact!" onPress={askPermissions} />
+        <Text>Loading...</Text>
       </View>
     </View>
   );

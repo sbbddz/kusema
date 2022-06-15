@@ -42,7 +42,14 @@ export function Home() {
         onPress={() => navigator.navigate("ReadQR")}
         style={styles.addFixed}
       >
-        <Text style={{ padding: 15, fontSize: 50, color: "white", fontWeight: "bold" }}>
+        <Text
+          style={{
+            padding: 15,
+            fontSize: 50,
+            color: "white",
+            fontWeight: "bold",
+          }}
+        >
           +
         </Text>
       </TouchableOpacity>
@@ -50,14 +57,23 @@ export function Home() {
         onPress={() => navigator.navigate("ShowQR")}
         style={styles.shareFixed}
       >
-        <Text style={{ padding: 15, fontSize: 30, color: "white", fontWeight: "bold" }}>👤</Text>
+        <Text
+          style={{
+            padding: 15,
+            fontSize: 30,
+            color: "white",
+            fontWeight: "bold",
+          }}
+        >
+          👤
+        </Text>
       </TouchableOpacity>
-      {/*<TouchableOpacity
+      <TouchableOpacity
         onPress={() => deleteDatabase()}
         style={styles.shareFixed2}
       >
         <Text>X</Text>
-        </TouchableOpacity>*/}
+      </TouchableOpacity>
     </View>
   );
 }
