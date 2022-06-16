@@ -1,6 +1,11 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { GiftedChat, IMessage } from "react-native-gifted-chat";
+import {
+  Bubble,
+  BubbleProps,
+  GiftedChat,
+  IMessage,
+} from "react-native-gifted-chat";
 import { firestoreDatabase } from "../services/firebase";
 import {
   addDoc,
@@ -29,6 +34,7 @@ export const Chat: React.FC = ({ route, navigation }: Props) => {
 
   useEffect(() => {
     db.getUser().then((u) => setUser(u));
+    navigation.setOptions({ title: route.params.name });
   }, []);
 
   useLayoutEffect(() => {
@@ -42,10 +48,6 @@ export const Chat: React.FC = ({ route, navigation }: Props) => {
           let rawData = doc.data();
           messages.push({
             _id: doc.id,
-            /*text: decryptMessage(
-              rawData["text"],
-              route.params.encryptionKey
-              ).toString(),*/
             text: decryptMessage(rawData["text"], route.params.encryptionKey),
             user: rawData["user"],
           } as IMessage);
@@ -72,9 +74,27 @@ export const Chat: React.FC = ({ route, navigation }: Props) => {
     addDoc(colRef, { ...messages[0], text: message });
   }, []);
 
+  const renderBubble = (props: BubbleProps) => {
+    return (
+      <Bubble
+        {...props}
+        wrapperStyle={{
+          right: {
+            backgroundColor: "#9063b2",
+          },
+        }}
+      />
+    );
+  };
+
   return (
     (user && (
-      <GiftedChat messages={messages} onSend={handleSend} user={user} />
+      <GiftedChat
+        renderBubble={renderBubble}
+        messages={messages}
+        onSend={handleSend}
+        user={user}
+      />
     )) || <Text>Loading...</Text>
   );
 };

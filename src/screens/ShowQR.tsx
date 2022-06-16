@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Alert, Text, TextInput, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { QRChat } from "../models/QRChat";
 import { Database } from "../services/database";
@@ -7,18 +7,26 @@ import uuid from "react-native-uuid";
 
 export const ShowQR = () => {
   const db = Database.getInstance();
+  const componentWillUnmount = useRef(false);
   const [qrChat, setQRChat] = useState<QRChat>();
-  const [qrChatTitle, setQrChatTitle] = useState<string>("Conversation");
+  const [qrChatTitle, setQrChatTitle] = useState<string>("");
+
+  function useOnUnmount(callback: () => void) {
+    const onUnmount = useRef<(() => void) | null>(null);
+    onUnmount.current = callback;
+
+    useEffect(() => {
+      return () => onUnmount.current?.();
+    }, []);
+  }
+
+  useOnUnmount(() => {
+    if (!qrChat) return;
+    db.addChat(qrChat).then((_) => Alert.alert("Chat added successfully!"));
+  });
 
   useEffect(() => {
-    const chat = generateQRChat();
-    setQRChat(chat);
-
-    // ESTO ES LO QUE DEBERIA DE FUNCIONAR POR FAVOR ARREGLALO
-    return () => {
-      if (qrChat === undefined) alert("Could not load chat into local storage");
-      else db.addChat(qrChat).then((res) => console.log(res));
-    };
+    setQrChatTitle("Conversation");
   }, []);
 
   useEffect(() => {

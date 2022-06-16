@@ -8,14 +8,25 @@ import { ShowQR } from "../screens/ShowQR";
 
 const BaseStack = createStackNavigator();
 
+const options = {
+  headerStyle: {
+    backgroundColor: "indigo",
+  },
+  headerTitleStyle: {
+    fontWeight: "bold",
+    color: "white",
+  },
+  headerTintColor: '#fff'
+};
+
 export function ChatStack() {
   // TODO: Add chat to the chatstack navigator
   return (
     <BaseStack.Navigator>
-      <BaseStack.Screen name="Home" component={Home} />
-      <BaseStack.Screen name="Chat" component={Chat} />
-      <BaseStack.Screen name="ReadQR" component={ReadQR} />
-      <BaseStack.Screen name="ShowQR" component={ShowQR} />
+      <BaseStack.Screen name="Home" options={options} component={Home} />
+      <BaseStack.Screen name="Chat" options={options} component={Chat} />
+      <BaseStack.Screen name="ReadQR" options={options} component={ReadQR} />
+      <BaseStack.Screen name="ShowQR" options={options} component={ShowQR} />
     </BaseStack.Navigator>
   );
 }

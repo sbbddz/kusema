@@ -3,6 +3,7 @@ import { Button, Text, View } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { Database } from "../services/database";
 import { QRChat } from "../models/QRChat";
+import { useNavigation } from "@react-navigation/native";
 
 interface QRState {
   isScanned: boolean;
@@ -13,6 +14,7 @@ export const ReadQR = () => {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState({ isScanned: false, data: undefined });
   const db = Database.getInstance();
+  const navigation = useNavigation();
 
   useLayoutEffect(() => {
     askPermissions();
@@ -33,6 +35,7 @@ export const ReadQR = () => {
     db.addChat(qrChat).then(
       (x) => {
         alert("Chat added sucessfully!");
+        navigation.navigate("Home");
       },
       (err) => alert("Error occurred while adding chat to the database!")
     );

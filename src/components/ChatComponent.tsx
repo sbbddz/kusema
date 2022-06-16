@@ -16,9 +16,11 @@ import { Database } from "../services/database";
 
 export type Props = {
   chat: QRChat;
+  chats: QRChat[];
+  setChats: (chats: QRChat[]) => void;
 };
 
-export const ChatComponent: React.FC<Props> = ({ chat }) => {
+export const ChatComponent: React.FC<Props> = ({ chat, chats, setChats }) => {
   const navigator = useNavigation();
   const db = Database.getInstance();
 
@@ -26,10 +28,28 @@ export const ChatComponent: React.FC<Props> = ({ chat }) => {
     navigator.navigate("Chat", chat);
   };
 
+  const handleLongPress = () => {
+    Alert.alert("Delete chat", "Are you sure?", [
+      {
+        text: "Cancel",
+        onPress: () => console.log("cancel"),
+        style: "cancel",
+      },
+      {
+        text: "Ok",
+        onPress: () => {
+          db.removeChat(chat.guidChat).then((x) => {
+            setChats(chats.filter((y) => y.guidChat !== chat.guidChat));
+          });
+        },
+      },
+    ]);
+  };
+
   return (
     <>
       <TouchableOpacity
-        onLongPress={() => db.deleteDatabase()}
+        onLongPress={handleLongPress}
         onPress={handlePress}
         style={styles.chatContainer}
       >

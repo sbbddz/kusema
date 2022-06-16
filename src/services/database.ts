@@ -48,6 +48,26 @@ export class Database {
     );
   }
 
+  public removeChat(guid: string): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+      if (!this.database) {
+        reject("Couldn't delete chat from database");
+        return;
+      }
+
+      this.database.transaction(
+        (x) => {
+          x.executeSql("delete from chats where guid = ?", [guid]);
+          resolve(true);
+        },
+        (err) => {
+          console.log(err);
+          reject(err);
+        }
+      );
+    });
+  }
+
   public getDatabase(): DB {
     return this.database;
   }

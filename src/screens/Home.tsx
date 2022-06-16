@@ -2,6 +2,7 @@ import { useIsFocused, useNavigation } from "@react-navigation/native";
 import React, { useContext, useEffect } from "react";
 import {
   Alert,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,22 +22,26 @@ export function Home() {
   const db = Database.getInstance();
 
   useEffect(() => {
+    fetchChatsFromDB();
+  }, [isFocused]);
+
+  const fetchChatsFromDB = () => {
     db.getContactChats().then(
       (res) => {
-        console.log(res);
         setContactsChat(res);
       },
       (err) => Alert.alert("Can't load chats in database. DB is corrupted?")
     );
-  }, [isFocused]);
-
+  };
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView
+        refreshControl={<RefreshControl onRefresh={fetchChatsFromDB} />}
+      >
         {contactsChats &&
           contactsChats.map((x) => {
-            return <ChatComponent key={x.guidChat} chat={x} />;
-          })}
+            return <ChatComponent key={x.guidChat} chats={contactsChats} setChats={setContactsChat} chat={x} />;
+        }) || <Text>Start by creating a conversation!</Text>}
       </ScrollView>
       <TouchableOpacity
         onPress={() => navigator.navigate("ReadQR")}
@@ -55,6 +60,7 @@ export function Home() {
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => navigator.navigate("ShowQR")}
+        onLongPress={() => deleteDatabase()}
         style={styles.shareFixed}
       >
         <Text
@@ -67,12 +73,6 @@ export function Home() {
         >
           👤
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => deleteDatabase()}
-        style={styles.shareFixed2}
-      >
-        <Text>X</Text>
       </TouchableOpacity>
     </View>
   );
